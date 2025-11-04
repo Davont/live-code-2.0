@@ -1,7 +1,8 @@
 // src/components/Preview.tsx
 
 import React, { useRef, useEffect } from 'react';
-import * as ReactDOMClient from 'react-dom/client';
+import { getAllModules, getFunctionArgNames } from '../config/injectedPackages';
+import { previewLogger } from '../utils/logger';
 
 
 interface PreviewProps {
@@ -43,7 +44,7 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
         return;
     }
     
-    console.log('[Preview] 🎨 准备渲染，代码长度:', code?.length);
+    previewLogger.process(`准备渲染 (代码长度: ${code?.length} 字符)`);
     shadowRoot.innerHTML = `
       <style>
         :host { color: initial; } 
@@ -54,24 +55,28 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
 
     if (code) {
       try {
-        console.log('[Preview] 📝 代码内容:\n', code);
-        console.log('[Preview] 🔍 React:', React);
-        console.log('[Preview] 🔍 ReactDOM:', ReactDOMClient);
+        previewLogger.data('代码内容', { 代码内容: code });
         
-        // 将 React 和 ReactDOM 作为参数注入到执行环境中
-        const execute = new Function('shadowRoot', 'React', 'ReactDOM', code);
-        console.log('[Preview] ▶️ 开始执行代码...');
-        execute(shadowRoot, React, ReactDOMClient);
-        console.log('[Preview] ✅ 代码执行完成');
+        // 自动从配置文件获取参数名和模块
+        const argNames = getFunctionArgNames();
+        const modules = getAllModules();
+        
+        previewLogger.info('注入的包', argNames);
+        
+        // 将所有配置的包作为参数注入到执行环境中
+        const execute = new Function(...argNames, code);
+        previewLogger.process('开始执行代码...');
+        execute(shadowRoot, ...modules);
+        previewLogger.success('代码执行完成 ✨');
         onError(null);
       } catch (e) {
-        console.error('[Preview] ❌ 执行错误:', e);
+        previewLogger.error('执行错误', e);
         if (e instanceof Error) {
           onError(e);
         }
       }
     } else {
-      console.log('[Preview] ⚠️ 没有代码');
+      previewLogger.warning('没有代码');
     }
   }, [code, isLoading, onError]);
 
