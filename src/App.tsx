@@ -7,28 +7,22 @@ import Preview from './components/Preview';
 import { useTranspiledBundle } from './hooks/useTranspiledBundle';
 
 const initialCode = `
-import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client';
+// 直接写你的组件，无需 import 和渲染代码
+const { useState } = React;
 
 function App() {
   const [count, setCount] = useState(0);
 
   return (
     <div>
-      <h1>Hello from esbuild!</h1>
-      <p>This is bundled in a Web Worker.</p>
+      <h1>Hello from Live Code!</h1>
+      <p>直接写组件，自动渲染</p>
       <button onClick={() => setCount(c => c + 1)}>
-        Count: {count}
+        点击次数: {count}
       </button>
-      <p>Try adding an import from a CDN!</p>
     </div>
   );
 }
-
-// The sandboxed code now receives \`shadowRoot\` as an argument from the executor.
-const container = shadowRoot.getElementById('root');
-const root = ReactDOM.createRoot(container);
-root.render(<App />);
 `.trim();
 
 

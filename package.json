@@ -1,7 +1,7 @@
 {
-  "name": "vite-project",
+  "name": "live-code-2.0",
   "private": true,
-  "version": "0.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@babel/standalone": "^7.28.5",
     "esbuild-wasm": "^0.25.12",
     "prismjs": "^1.30.0",
     "react": "^19.1.1",
@@ -19,19 +18,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@types/babel__standalone": "^7.1.9",
-    "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.6.0",
     "@types/prismjs": "^1.26.5",
     "@types/react": "^19.1.16",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.4",
     "babel-plugin-react-compiler": "^19.1.0-rc.3",
-    "esbuild-node-externals": "^1.18.0",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.22",
-    "fs-extra": "^11.3.2",
     "globals": "^16.4.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.45.0",

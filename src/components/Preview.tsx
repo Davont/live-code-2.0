@@ -1,6 +1,7 @@
 // src/components/Preview.tsx
 
 import React, { useRef, useEffect } from 'react';
+import * as ReactDOMClient from 'react-dom/client';
 
 
 interface PreviewProps {
@@ -24,9 +25,13 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
 
   useEffect(() => {
     const shadowRoot = shadowRootRef.current;
-    if (!shadowRoot) return;
+    if (!shadowRoot) {
+      console.log('[Preview] ⚠️ ShadowRoot 未就绪');
+      return;
+    }
     
     if (isLoading) {
+        console.log('[Preview] ⏳ 加载中...');
         shadowRoot.innerHTML = `
             <style>
                 :host { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
@@ -38,6 +43,7 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
         return;
     }
     
+    console.log('[Preview] 🎨 准备渲染，代码长度:', code?.length);
     shadowRoot.innerHTML = `
       <style>
         :host { color: initial; } 
@@ -48,14 +54,24 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
 
     if (code) {
       try {
-        const execute = new Function('shadowRoot', code);
-        execute(shadowRoot);
+        console.log('[Preview] 📝 代码内容:\n', code);
+        console.log('[Preview] 🔍 React:', React);
+        console.log('[Preview] 🔍 ReactDOM:', ReactDOMClient);
+        
+        // 将 React 和 ReactDOM 作为参数注入到执行环境中
+        const execute = new Function('shadowRoot', 'React', 'ReactDOM', code);
+        console.log('[Preview] ▶️ 开始执行代码...');
+        execute(shadowRoot, React, ReactDOMClient);
+        console.log('[Preview] ✅ 代码执行完成');
         onError(null);
       } catch (e) {
+        console.error('[Preview] ❌ 执行错误:', e);
         if (e instanceof Error) {
           onError(e);
         }
       }
+    } else {
+      console.log('[Preview] ⚠️ 没有代码');
     }
   }, [code, isLoading, onError]);
 
