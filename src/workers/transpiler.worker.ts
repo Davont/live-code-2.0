@@ -32,31 +32,36 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
       external: EXTERNAL_PACKAGES, // 自动从配置文件读取
       plugins: [
         {
-          name: 'cdn-resolver',
+          name: 'local-node-modules-resolver',
           setup(build) {
             // Rule 1: Handle the virtual entry point
             build.onResolve({ filter: /^index\.js$/ }, () => ({ path: 'index.js', namespace: 'memory-fs' }));
             
-            // Rule 2: Handle remote http/https modules (from CDN)
+            // Rule 2: Handle remote http/https modules (from CDN) - for completeness
             build.onResolve({ filter: /^https?:\/\// }, (args) => ({ path: args.path, namespace: 'http-url' }));
             
             // Rule 3: Handle relative paths within remote modules
             build.onResolve({ filter: /.*/, namespace: 'http-url' }, (args) => ({ path: new URL(args.path, args.importer).href, namespace: 'http-url' }));
             
-            // Rule 4: Handle all other (bare) module imports by resolving to esm.sh
-            // 这会处理所有不在 external 列表中的包
-            build.onResolve({ filter: /.*/ }, (args) => {
-              console.log('[Worker] 🌐 从 CDN 加载包:', args.path);
-              return { path: `https://esm.sh/${args.path}`, namespace: 'http-url' };
+            // Rule 4: Handle bare imports (node_modules) by resolving to root-relative paths
+            // This will be intercepted by the Vite dev server
+            build.onResolve({ filter: /^[^./]/ }, (args) => {
+              // Skip external packages, they are injected
+              if (EXTERNAL_PACKAGES.includes(args.path)) {
+                return { path: args.path, external: true };
+              }
+              console.log('[Worker] 📦 从本地 node_modules 加载包:', args.path);
+              return { path: `/node_modules/${args.path}`, namespace: 'http-url' };
             });
 
             // --- Loaders ---
 
-            // Loader for remote modules from CDN
+            // Loader for remote/local modules fetched via http
             build.onLoad({ filter: /.*/, namespace: 'http-url' }, async (args) => {
                 const res = await fetch(args.path);
                 const text = await res.text();
-                const loader = args.path.endsWith('.css') ? 'css' : 'jsx';
+                // IMPORTANT: Load CSS as text, so we can inject it into the shadow DOM
+                const loader = args.path.endsWith('.css') ? 'text' : 'jsx';
                 return { contents: text, loader };
             });
 
