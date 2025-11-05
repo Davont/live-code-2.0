@@ -34,25 +34,38 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
         {
           name: 'local-node-modules-resolver',
           setup(build) {
-            // Rule 1: Handle the virtual entry point
-            build.onResolve({ filter: /^index\.js$/ }, () => ({ path: 'index.js', namespace: 'memory-fs' }));
+            // Rule 1: 处理虚拟入口文件
+            build.onResolve({ filter: /^index\.js$/ }, () => ({ 
+              path: 'index.js', 
+              namespace: 'memory-fs' 
+            }));
             
-            // Rule 2: Handle remote http/https modules (from CDN) - for completeness
-            build.onResolve({ filter: /^https?:\/\// }, (args) => ({ path: args.path, namespace: 'http-url' }));
+            // Rule 2: 在 http-url namespace 中处理相对路径
+            build.onResolve({ filter: /^\.\.?\//, namespace: 'http-url' }, (args) => {
+              // 相对路径需要基于 importer 来解析
+              const resolved = new URL(args.path, args.importer).href;
+              return { path: resolved, namespace: 'http-url' };
+            });
             
-            // Rule 3: Handle relative paths within remote modules
-            build.onResolve({ filter: /.*/, namespace: 'http-url' }, (args) => ({ path: new URL(args.path, args.importer).href, namespace: 'http-url' }));
+            // Rule 3: 在 http-url namespace 中处理裸模块导入
+            build.onResolve({ filter: /^[^./]/, namespace: 'http-url' }, (args) => {
+              // 检查是否为 external 包
+              if (EXTERNAL_PACKAGES.includes(args.path)) {
+                return { path: args.path, external: true };
+              }
+              // 其他裸模块都解析到 /node_modules/
+              console.log('[Worker] 📦 嵌套加载:', args.path);
+              return { path: `/node_modules/${args.path}`, namespace: 'http-url' };
+            });
             
-            // Rule 4: Handle bare imports (node_modules) by resolving to root-relative paths
-            // This will be intercepted by the Vite dev server
+            // Rule 4: 处理初始的裸模块导入（从用户代码）
             build.onResolve({ filter: /^[^./]/ }, (args) => {
-              // Skip external packages, they are injected
+              // 检查是否为 external 包
               if (EXTERNAL_PACKAGES.includes(args.path)) {
                 return { path: args.path, external: true };
               }
               console.log('[Worker] 📦 从本地 node_modules 加载包:', args.path);
-              const path = `/node_modules/${args.path}`;
-              return { path, namespace: 'http-url' };
+              return { path: `/node_modules/${args.path}`, namespace: 'http-url' };
             });
 
             // --- Loaders ---
