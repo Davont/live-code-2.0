@@ -51,7 +51,14 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
                 return { path: args.path, external: true };
               }
               console.log('[Worker] 📦 从本地 node_modules 加载包:', args.path);
-              return { path: `/node_modules/${args.path}`, namespace: 'http-url' };
+              
+              let path = `/node_modules/${args.path}`;
+              // For CSS files, append ?raw to get the raw text content from Vite
+              if (args.path.endsWith('.css')) {
+                path += '?raw';
+              }
+              
+              return { path, namespace: 'http-url' };
             });
 
             // --- Loaders ---
