@@ -51,13 +51,7 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
                 return { path: args.path, external: true };
               }
               console.log('[Worker] 📦 从本地 node_modules 加载包:', args.path);
-              
-              let path = `/node_modules/${args.path}`;
-              // For CSS files, append ?raw to get the raw text content from Vite
-              if (args.path.endsWith('.css')) {
-                path += '?raw';
-              }
-              
+              const path = `/node_modules/${args.path}`;
               return { path, namespace: 'http-url' };
             });
 
@@ -65,10 +59,17 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
 
             // Loader for remote/local modules fetched via http
             build.onLoad({ filter: /.*/, namespace: 'http-url' }, async (args) => {
+                // For CSS files, we don't fetch content.
+                // Instead, we return a JS module that exports the file's URL.
+                if (args.path.endsWith('.css')) {
+                  const contents = `export default "${args.path}";`;
+                  return { contents, loader: 'js' };
+                }
+
+                // For JS files, we fetch the content as before.
                 const res = await fetch(args.path);
                 const text = await res.text();
-                // IMPORTANT: Load CSS as text, so we can inject it into the shadow DOM
-                const loader = args.path.endsWith('.css') ? 'text' : 'jsx';
+                const loader = 'jsx';
                 return { contents: text, loader };
             });
 
