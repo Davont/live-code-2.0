@@ -54,7 +54,7 @@ export function generateImportDeclarations(): string {
   const entries = Object.entries(PACKAGES);
   
   entries.forEach(([varName], index) => {
-    // shadowRoot 是 arguments[0]，所以包从 index 1 开始
+    // container 是 arguments[0]，所以包从 index 1 开始
     declarations += `const ${varName} = arguments[${index + 1}];\n`;
   });
   
@@ -68,6 +68,6 @@ export function getAllModules(): unknown[] {
 
 // 自动生成 new Function 的参数名列表
 export function getFunctionArgNames(): string[] {
-  return ['shadowRoot', ...Object.keys(PACKAGES)];
+  return ['container', ...Object.keys(PACKAGES)];
 }
 

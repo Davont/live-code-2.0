@@ -14,40 +14,31 @@ interface PreviewProps {
 }
 
 const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVisible, onToggleEditor }) => {
-  const shadowHostRef = useRef<HTMLDivElement>(null);
-  const shadowRootRef = useRef<ShadowRoot | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const shadowHost = shadowHostRef.current;
-    if (shadowHost && !shadowRootRef.current) {
-        shadowRootRef.current = shadowHost.attachShadow({ mode: 'open' });
-    }
-  }, []);
-
-  useEffect(() => {
-    const shadowRoot = shadowRootRef.current;
-    if (!shadowRoot) {
-      console.log('[Preview] ⚠️ ShadowRoot 未就绪');
+    const container = containerRef.current;
+    if (!container) {
+      console.log('[Preview] ⚠️ Container 未就绪');
       return;
     }
     
     if (isLoading) {
         console.log('[Preview] ⏳ 加载中...');
-        shadowRoot.innerHTML = `
+        container.innerHTML = `
             <style>
-                :host { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
+                .preview-loading { display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; }
                 .loading-spinner { width: 40px; height: 40px; border: 5px solid rgba(0,0, 0, 0.3); border-radius: 50%; border-top-color: #ffffff; animation: spin 1s ease-in-out infinite; }
                 @keyframes spin { to { transform: rotate(360deg); } }
             </style>
-            <div class="loading-spinner"></div>
+            <div class="preview-loading"><div class="loading-spinner"></div></div>
         `;
         return;
     }
     
     previewLogger.process(`准备渲染 (代码长度: ${code?.length} 字符)`);
-    shadowRoot.innerHTML = `
+    container.innerHTML = `
       <style>
-        :host { color: initial; } 
         #root { height: 100%; }
       </style>
       <div id="root"></div>
@@ -66,7 +57,7 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
         // 将所有配置的包作为参数注入到执行环境中
         const execute = new Function(...argNames, code);
         previewLogger.process('开始执行代码...');
-        execute(shadowRoot, ...modules);
+        execute(container, ...modules);
         previewLogger.success('代码执行完成 ✨');
         onError(null);
       } catch (e) {
@@ -93,7 +84,7 @@ const Preview: React.FC<PreviewProps> = ({ code, onError, isLoading, isEditorVis
             {isEditorVisible ? 'Fullscreen' : 'Exit Fullscreen'}
         </button>
         <div 
-            ref={shadowHostRef} 
+            ref={containerRef} 
             style={{ flex: 1, width: '100%', height: '100%' }}
         ></div>
     </div>

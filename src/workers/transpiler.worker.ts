@@ -172,10 +172,10 @@ if (typeof __bundle__ === 'object') {
 
 if (AppComponent && typeof AppComponent === 'function') {
   autoRenderLogger.log('检测到 App 组件（函数）');
-  const container = shadowRoot.getElementById('root');
-  if (container) {
+  const rootElement = container.querySelector('#root');
+  if (rootElement) {
     autoRenderLogger.log('找到 root 容器');
-    const root = ReactDOM.createRoot(container);
+    const root = ReactDOM.createRoot(rootElement);
     root.render(React.createElement(AppComponent));
     autoRenderLogger.success('已渲染 App 组件 🎉');
   } else {
