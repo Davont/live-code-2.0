@@ -25,6 +25,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ code, onCodeChange }) => {
         color: '#f8f8f2',
         borderRadius: '4px',
         flex: 1, // Allow editor to fill the pane
+        overflowY: 'auto', // 当代码过长时显示垂直滚动条
       }}
       // The outer div in App.tsx now handles the pane layout.
       // We need to ensure the editor itself can grow.
