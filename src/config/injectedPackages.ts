@@ -9,6 +9,7 @@
 import * as React from 'react';
 import * as ReactDOMClient from 'react-dom/client';
 import * as ReactIntl from 'react-intl';
+import { PACKAGES_CONFIG } from './package.config';
 
 // 🔧 添加新包示例：
 // import _ from 'lodash';
@@ -24,31 +25,28 @@ import * as ReactIntl from 'react-intl';
 export const PACKAGES = {
   // React 必须的包
   React: {
-    packageName: 'react',
+    ...PACKAGES_CONFIG.React,
     module: React,
   },
   ReactDOM: {
-    packageName: 'react-dom/client',
+    ...PACKAGES_CONFIG.ReactDOM,
     module: ReactDOMClient,
   },
   
   // react-intl 国际化库
   ReactIntl: {
-    packageName: 'react-intl',
+    ...PACKAGES_CONFIG.ReactIntl,
     module: ReactIntl,
   },
   
   // 🔧 添加新包示例：取消下面的注释
   // _: {
-  //   packageName: 'lodash',
+  //   ...PACKAGES_CONFIG._,
   //   module: _,
   // },
 } as const;
 
 // ==================== 以下代码无需修改 ====================
-
-// 自动生成 external 列表
-export const EXTERNAL_PACKAGES = Object.values(PACKAGES).map(pkg => pkg.packageName);
 
 // 自动生成导入声明代码
 export function generateImportDeclarations(): string {

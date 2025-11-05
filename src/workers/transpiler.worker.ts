@@ -1,7 +1,7 @@
 // src/workers/transpiler.worker.ts
 
 import * as esbuild from 'esbuild-wasm';
-import { EXTERNAL_PACKAGES } from '../config/injectedPackages';
+import { EXTERNAL_PACKAGES } from '../config/package.config';
 import { workerLogger } from '../utils/logger';
 import { autoRenderLoggerCode } from '../utils/autoRenderLogger';
 
@@ -27,6 +27,7 @@ const transpile = async (rawCode: string): Promise<{ code: string; error: string
       globalName: '__bundle__', // 给一个全局名称
       define: {
         'process.env.NODE_ENV': '"production"',
+        'window': 'self', // 将 window 指向 self
       },
       external: EXTERNAL_PACKAGES, // 自动从配置文件读取
       plugins: [
